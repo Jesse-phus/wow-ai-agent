@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Whispers of the Wind AI</h1>
+    <button onclick="makeCall()">Call Me for a Brochure</button>
+
+    <script>
+    function makeCall() {
+        fetch('/api/call', { method: 'POST' })
+        .then(response => alert('Asha is dialing your number now!'))
+        .catch(err => console.error(err));
+    }
+    </script>
+</body>
+</html>
