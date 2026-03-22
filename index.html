@@ -368,38 +368,46 @@
       updateCounters();
     }
 
-    async function triggerCall(name, phone, email) {
-      const leadIndex = leads.findIndex(
-        lead => lead.name === name && lead.phone === phone && (lead.email || "") === (email || "")
-      );
+  async function triggerCall(name, phone, email) {
+  const leadIndex = leads.findIndex(
+    lead => lead.name === name && lead.phone === phone && (lead.email || "") === (email || "")
+  );
 
-      if (leadIndex !== -1) {
-        leads[leadIndex].status = "Calling...";
-        renderLeads();
-      }
+  if (leadIndex !== -1) {
+    leads[leadIndex].status = "Calling...";
+    renderLeads();
+  }
 
-      try {
-        await fetch('/api/call', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, email })
-        });
+  try {
+    const response = await fetch('/api/call', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, phone, email })
+    });
 
-        if (leadIndex !== -1) {
-          leads[leadIndex].status = "Completed";
-          renderLeads();
-        }
+    const result = await response.json();
 
-        showToast(`Calling ${name}...`);
-        alert('Calling ' + name + '...');
-      } catch (error) {
-        if (leadIndex !== -1) {
-          leads[leadIndex].status = "Failed";
-          renderLeads();
-        }
-        showToast(`Failed to call ${name}`);
-      }
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || 'Call trigger failed');
     }
+
+    if (leadIndex !== -1) {
+      leads[leadIndex].status = "Completed";
+      renderLeads();
+    }
+
+    showToast(`Calling ${name}...`);
+    alert('Calling ' + name + '...');
+  } catch (error) {
+    if (leadIndex !== -1) {
+      leads[leadIndex].status = "Failed";
+      renderLeads();
+    }
+
+    showToast(`Failed to call ${name}`);
+    console.error(error);
+  }
+}
 
     function toggleAll() {
       const master = document.getElementById('selectAll').checked;
