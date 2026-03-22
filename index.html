@@ -1,15 +1,462 @@
 <!DOCTYPE html>
-<html>
-<body>
-    <h1>Whispers of the Wind AI</h1>
-    <button onclick="makeCall()">Call Me for a Brochure</button>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WOW AI | Lead Control Center</title>
 
-    <script>
-    function makeCall() {
-        fetch('/api/call', { method: 'POST' })
-        .then(response => alert('Asha is dialing your number now!'))
-        .catch(err => console.error(err));
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          boxShadow: {
+            glow: "0 0 0 1px rgba(59,130,246,0.18), 0 18px 50px rgba(15,23,42,0.45)",
+            soft: "0 12px 30px rgba(2,6,23,0.35)"
+          },
+          backgroundImage: {
+            grid: "linear-gradient(rgba(148,163,184,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.06) 1px, transparent 1px)"
+          }
+        }
+      }
     }
-    </script>
+  </script>
+</head>
+
+<body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased">
+  <div class="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_30%),radial-gradient(circle_at_top_right,rgba(14,165,233,0.16),transparent_25%),linear-gradient(to_bottom,rgba(15,23,42,1),rgba(2,6,23,1))]"></div>
+  <div class="absolute inset-0 -z-10 bg-grid bg-[size:36px_36px] opacity-30"></div>
+
+  <div class="max-w-7xl mx-auto px-6 py-8 lg:px-10">
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+        <div>
+          <div class="inline-flex items-center gap-2 rounded-full border border-blue-500/20 bg-blue-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-300">
+            AI Outbound Command Center
+          </div>
+          <h1 class="mt-4 text-4xl font-bold tracking-tight text-white sm:text-5xl">
+            Whispers of the Wind
+          </h1>
+          <p class="mt-3 max-w-2xl text-slate-400 text-base sm:text-lg">
+            Upload lead lists, review contact data, trigger individual calls, and launch coordinated outbound actions from one elegant control panel.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:w-[460px]">
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-soft backdrop-blur">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Leads Loaded</p>
+            <p id="leadCount" class="mt-2 text-2xl font-bold text-white">0</p>
+          </div>
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-soft backdrop-blur">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Selected</p>
+            <p id="selectedCount" class="mt-2 text-2xl font-bold text-white">0</p>
+          </div>
+          <div class="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-soft backdrop-blur">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Completed</p>
+            <p id="completedCount" class="mt-2 text-2xl font-bold text-white">0</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Top Controls -->
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.9fr]">
+      <!-- Upload Card -->
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-glow backdrop-blur">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-semibold text-white">Lead Import</h2>
+            <p class="mt-2 text-sm text-slate-400">
+              Upload a CSV containing name, phone, and email fields. The parser will map common variations like
+              <span class="text-slate-300">name/full_name</span>,
+              <span class="text-slate-300">phone/mobile</span>, and
+              <span class="text-slate-300">email/email_address</span>.
+            </p>
+          </div>
+          <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">
+            Ready
+          </span>
+        </div>
+
+        <div
+          id="dropZone"
+          class="mt-6 rounded-2xl border border-dashed border-slate-700 bg-slate-950/50 p-6 transition hover:border-blue-500/50 hover:bg-slate-900"
+        >
+          <div class="flex flex-col items-center justify-center text-center">
+            <div class="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 ring-1 ring-blue-500/20">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0l-4 4m4-4l4 4M4 16.5v1A2.5 2.5 0 006.5 20h11a2.5 2.5 0 002.5-2.5v-1" />
+              </svg>
+            </div>
+
+            <h3 class="text-lg font-semibold text-white">Upload CSV File</h3>
+            <p class="mt-2 text-sm text-slate-400">
+              Drag and drop your lead list here or browse from your device.
+            </p>
+
+            <input type="file" id="csvFile" accept=".csv" class="hidden" onchange="handleCSV(event)" />
+
+            <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+              <button
+                onclick="document.getElementById('csvFile').click()"
+                class="rounded-xl border border-slate-700 bg-slate-800 px-5 py-3 text-sm font-semibold text-white transition hover:border-slate-500 hover:bg-slate-700"
+              >
+                Choose CSV
+              </button>
+              <button
+                onclick="triggerBulk()"
+                class="rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/25 transition hover:bg-blue-500"
+              >
+                Trigger Bulk Calls
+              </button>
+            </div>
+
+            <p id="fileMeta" class="mt-4 text-xs text-slate-500">
+              No file uploaded yet.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Command Panel -->
+      <div class="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-soft backdrop-blur">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-white">Command Console</h2>
+            <p class="mt-2 text-sm text-slate-400">
+              Filter leads, review status, select rows, and launch outbound actions without interrupting the existing trigger logic.
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <div class="relative">
+              <input
+                id="searchInput"
+                type="text"
+                placeholder="Search leads..."
+                class="w-full rounded-xl border border-slate-700 bg-slate-950/70 px-4 py-3 pl-10 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 sm:w-64"
+              />
+              <svg xmlns="http://www.w3.org/2000/svg" class="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+              </svg>
+            </div>
+
+            <button
+              onclick="triggerBulk()"
+              class="rounded-xl border border-blue-500/30 bg-blue-500/15 px-5 py-3 text-sm font-semibold text-blue-300 transition hover:bg-blue-500/25"
+            >
+              Call Selected
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Status Map</p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="rounded-full border border-slate-700 bg-slate-800 px-3 py-1 text-xs text-slate-300">Ready</span>
+              <span class="rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs text-amber-300">Calling</span>
+              <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">Completed</span>
+              <span class="rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-1 text-xs text-rose-300">Failed</span>
+            </div>
+          </div>
+
+          <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Row Actions</p>
+            <p class="mt-3 text-sm text-slate-400">
+              Each lead can be triggered individually using the dedicated action button in the table.
+            </p>
+          </div>
+
+          <div class="rounded-2xl border border-slate-800 bg-slate-950/60 p-4">
+            <p class="text-xs uppercase tracking-[0.2em] text-slate-500">Bulk Actions</p>
+            <p class="mt-3 text-sm text-slate-400">
+              Select one or more rows and run them in sequence through the same existing API route.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Data Table -->
+    <section class="mt-8 rounded-3xl border border-slate-800 bg-slate-900/70 shadow-soft backdrop-blur overflow-hidden">
+      <div class="flex flex-col gap-4 border-b border-slate-800 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-white">Lead Control Table</h2>
+          <p class="mt-1 text-sm text-slate-400">All parsed records appear below with selection, call status, and action controls.</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="inline-flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-950/70 px-4 py-3 text-sm text-slate-300">
+            <input type="checkbox" id="selectAll" onclick="toggleAll()" class="h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500" />
+            Select All
+          </label>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-left">
+          <thead class="bg-slate-950/80 text-xs uppercase tracking-[0.18em] text-slate-400">
+            <tr>
+              <th class="px-6 py-4">Pick</th>
+              <th class="px-6 py-4">Lead Name</th>
+              <th class="px-6 py-4">Phone Number</th>
+              <th class="px-6 py-4">Email</th>
+              <th class="px-6 py-4">Status</th>
+              <th class="px-6 py-4 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="leadTable" class="divide-y divide-slate-800">
+            <tr>
+              <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                No leads loaded yet. Upload a CSV to populate the dashboard.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="pointer-events-none fixed bottom-6 right-6 translate-y-4 opacity-0 transition duration-300">
+    <div class="rounded-2xl border border-slate-700 bg-slate-900/95 px-5 py-4 shadow-glow backdrop-blur">
+      <p id="toastText" class="text-sm text-slate-200">Action complete</p>
+    </div>
+  </div>
+
+  <script>
+    let leads = [];
+    let filteredLeads = [];
+
+    function normalizeLead(row) {
+      return {
+        name: row.name || row.Name || row.full_name || row.fullName || row["Lead Name"] || "",
+        phone: row.phone || row.Phone || row.mobile || row.Mobile || row["Phone Number"] || "",
+        email: row.email || row.Email || row.email_address || row.emailAddress || row["Email Address"] || "",
+        status: "Ready"
+      };
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      const toastText = document.getElementById("toastText");
+      toastText.textContent = message;
+      toast.classList.remove("translate-y-4", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => {
+        toast.classList.add("translate-y-4", "opacity-0");
+        toast.classList.remove("translate-y-0", "opacity-100");
+      }, 2200);
+    }
+
+    function getStatusBadge(status) {
+      const styles = {
+        "Ready": "border-slate-700 bg-slate-800 text-slate-300",
+        "Calling...": "border-amber-500/20 bg-amber-500/10 text-amber-300",
+        "Completed": "border-emerald-500/20 bg-emerald-500/10 text-emerald-300",
+        "Failed": "border-rose-500/20 bg-rose-500/10 text-rose-300"
+      };
+
+      return `<span class="inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${styles[status] || styles["Ready"]}">${status}</span>`;
+    }
+
+    function updateCounters() {
+      document.getElementById("leadCount").textContent = leads.length;
+
+      const selected = document.querySelectorAll(".lead-check:checked").length;
+      document.getElementById("selectedCount").textContent = selected;
+
+      const completed = leads.filter(lead => lead.status === "Completed").length;
+      document.getElementById("completedCount").textContent = completed;
+    }
+
+    function handleCSV(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById("fileMeta").textContent = `Loaded file: ${file.name}`;
+
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          leads = results.data
+            .map(normalizeLead)
+            .filter(r => r.name && r.phone);
+
+          filteredLeads = [...leads];
+          renderLeads();
+          showToast(`Imported ${leads.length} leads from ${file.name}`);
+        },
+        error: () => {
+          showToast("Failed to parse CSV file.");
+        }
+      });
+    }
+
+    function renderLeads() {
+      const tbody = document.getElementById("leadTable");
+      const searchValue = document.getElementById("searchInput").value.trim().toLowerCase();
+
+      filteredLeads = leads.filter(lead => {
+        if (!searchValue) return true;
+        return (
+          (lead.name || "").toLowerCase().includes(searchValue) ||
+          (lead.phone || "").toLowerCase().includes(searchValue) ||
+          (lead.email || "").toLowerCase().includes(searchValue)
+        );
+      });
+
+      if (!filteredLeads.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+              No matching leads found.
+            </td>
+          </tr>
+        `;
+        updateCounters();
+        return;
+      }
+
+      tbody.innerHTML = filteredLeads.map((lead) => {
+        const originalIndex = leads.indexOf(lead);
+        return `
+          <tr class="group transition hover:bg-slate-800/60">
+            <td class="px-6 py-4">
+              <input
+                type="checkbox"
+                class="lead-check h-4 w-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500"
+                data-index="${originalIndex}"
+                onchange="updateCounters()"
+              />
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="font-semibold text-white">${lead.name}</div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="text-slate-300">${lead.phone}</div>
+            </td>
+
+            <td class="px-6 py-4">
+              <div class="text-sm text-slate-400">${lead.email || "N/A"}</div>
+            </td>
+
+            <td class="px-6 py-4" id="status-cell-${originalIndex}">
+              ${getStatusBadge(lead.status)}
+            </td>
+
+            <td class="px-6 py-4 text-center">
+              <button
+                onclick="triggerCall('${String(lead.name).replace(/'/g, "\\'")}', '${String(lead.phone).replace(/'/g, "\\'")}', '${String(lead.email || "").replace(/'/g, "\\'")}')"
+                class="inline-flex items-center justify-center rounded-xl border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-300 transition hover:border-blue-400/40 hover:bg-blue-500/20 hover:text-blue-200"
+              >
+                Call Now
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      updateCounters();
+    }
+
+    async function triggerCall(name, phone, email) {
+      const leadIndex = leads.findIndex(
+        lead => lead.name === name && lead.phone === phone && (lead.email || "") === (email || "")
+      );
+
+      if (leadIndex !== -1) {
+        leads[leadIndex].status = "Calling...";
+        renderLeads();
+      }
+
+      try {
+        await fetch('/api/call', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone, email })
+        });
+
+        if (leadIndex !== -1) {
+          leads[leadIndex].status = "Completed";
+          renderLeads();
+        }
+
+        showToast(`Calling ${name}...`);
+        alert('Calling ' + name + '...');
+      } catch (error) {
+        if (leadIndex !== -1) {
+          leads[leadIndex].status = "Failed";
+          renderLeads();
+        }
+        showToast(`Failed to call ${name}`);
+      }
+    }
+
+    function toggleAll() {
+      const master = document.getElementById('selectAll').checked;
+      document.querySelectorAll('.lead-check').forEach(c => c.checked = master);
+      updateCounters();
+    }
+
+    async function triggerBulk() {
+      const selected = document.querySelectorAll('.lead-check:checked');
+
+      if (!selected.length) {
+        showToast("No leads selected.");
+        return;
+      }
+
+      showToast(`Starting ${selected.length} outbound call(s)...`);
+
+      for (let check of selected) {
+        const lead = leads[check.dataset.index];
+        await triggerCall(lead.name, lead.phone, lead.email);
+      }
+
+      updateCounters();
+    }
+
+    // Search binding
+    document.addEventListener("DOMContentLoaded", () => {
+      const dropZone = document.getElementById("dropZone");
+      const fileInput = document.getElementById("csvFile");
+      const searchInput = document.getElementById("searchInput");
+
+      searchInput.addEventListener("input", renderLeads);
+
+      ["dragenter", "dragover"].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropZone.classList.add("border-blue-500/60", "bg-slate-900");
+        });
+      });
+
+      ["dragleave", "drop"].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          dropZone.classList.remove("border-blue-500/60", "bg-slate-900");
+        });
+      });
+
+      dropZone.addEventListener("drop", (e) => {
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.toLowerCase().endsWith(".csv")) {
+          fileInput.files = e.dataTransfer.files;
+          handleCSV({ target: { files: e.dataTransfer.files } });
+        } else {
+          showToast("Please drop a valid CSV file.");
+        }
+      });
+    });
+  </script>
 </body>
 </html>
